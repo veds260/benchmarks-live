@@ -43,8 +43,18 @@ export function computeAllScores(): void {
 
   // Gather raw signals for every entry
   const entries = db
-    .prepare("SELECT id, github_repo FROM entries")
-    .all() as { id: number; github_repo: string | null }[];
+    .prepare("SELECT id, github_repo, pypi_package, npm_package FROM entries")
+    .all() as { id: number; github_repo: string | null; pypi_package: string | null; npm_package: string | null }[];
+
+  // Count how many entries share each package so we can split downloads fairly
+  const pypiSharers = new Map<string, number>();
+  const npmSharers = new Map<string, number>();
+  const ghSharers = new Map<string, number>();
+  for (const e of entries) {
+    if (e.pypi_package) pypiSharers.set(e.pypi_package, (pypiSharers.get(e.pypi_package) || 0) + 1);
+    if (e.npm_package) npmSharers.set(e.npm_package, (npmSharers.get(e.npm_package) || 0) + 1);
+    if (e.github_repo) ghSharers.set(e.github_repo, (ghSharers.get(e.github_repo) || 0) + 1);
+  }
 
   const signals: RawSignals[] = entries.map((e) => {
     // Benchmarks
@@ -67,7 +77,7 @@ export function computeAllScores(): void {
       last_commit_at: string | null;
     } | undefined;
 
-    // Downloads (latest per source)
+    // Downloads (latest per source) - split by number of entries sharing the package
     const hfDl = db
       .prepare(
         "SELECT downloads_month, likes FROM download_stats WHERE entry_id = ? AND source = 'huggingface' ORDER BY date DESC LIMIT 1"
@@ -85,6 +95,11 @@ export function computeAllScores(): void {
         "SELECT downloads_month FROM download_stats WHERE entry_id = ? AND source = 'npm' ORDER BY date DESC LIMIT 1"
       )
       .get(e.id) as { downloads_month: number } | undefined;
+
+    // Divide shared package downloads by number of sharers
+    const pypiDivisor = e.pypi_package ? (pypiSharers.get(e.pypi_package) || 1) : 1;
+    const npmDivisor = e.npm_package ? (npmSharers.get(e.npm_package) || 1) : 1;
+    const ghDivisor = e.github_repo ? (ghSharers.get(e.github_repo) || 1) : 1;
 
     // Social last 7 days
     const social = db
@@ -112,18 +127,18 @@ export function computeAllScores(): void {
       entry_id: e.id,
       has_github: !!e.github_repo,
       avg_benchmark_pct: benchRow?.avg_pct ?? 0,
-      github_stars: gh?.stars ?? 0,
+      github_stars: Math.round((gh?.stars ?? 0) / ghDivisor),
       hf_downloads_month: hfDl?.downloads_month ?? 0,
-      pypi_downloads_month: pypiDl?.downloads_month ?? 0,
-      npm_downloads_month: npmDl?.downloads_month ?? 0,
+      pypi_downloads_month: Math.round((pypiDl?.downloads_month ?? 0) / pypiDivisor),
+      npm_downloads_month: Math.round((npmDl?.downloads_month ?? 0) / npmDivisor),
       hn_points_7d: hnRow?.pts ?? 0,
       hn_comments_7d: hnRow?.cmt ?? 0,
       reddit_points_7d: redditRow?.pts ?? 0,
       reddit_comments_7d: redditRow?.cmt ?? 0,
-      github_contributors: gh?.contributors ?? 0,
-      github_forks: gh?.forks ?? 0,
+      github_contributors: Math.round((gh?.contributors ?? 0) / ghDivisor),
+      github_forks: Math.round((gh?.forks ?? 0) / ghDivisor),
       hf_likes: hfDl?.likes ?? 0,
-      github_commits_30d: gh?.commits_30d ?? 0,
+      github_commits_30d: Math.round((gh?.commits_30d ?? 0) / ghDivisor),
       days_since_last_commit: daysSinceCommit,
     };
   });
@@ -234,6 +249,20 @@ export function computeAllScores(): void {
         composite: Math.round(composite * 10) / 10,
       });
     }
+  }
+
+  // Re-normalize composites globally so categories are comparable
+  // Without this, small categories (3 infra entries) can dominate large ones (40 LLMs)
+  const allComposites = results.map((r) => r.composite);
+  const globalMax = Math.max(...allComposites, 1);
+  const globalMin = Math.min(...allComposites, 0);
+  for (const r of results) {
+    r.composite =
+      globalMax === globalMin
+        ? 50
+        : Math.round(
+            ((r.composite - globalMin) / (globalMax - globalMin)) * 100 * 10
+          ) / 10;
   }
 
   // Sort by composite desc and assign ranks
