@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { EntryRow, EntriesResponse } from "@/lib/types";
 import { CategoryTabs } from "./category-tabs";
 import { SearchBar } from "./search-bar";
@@ -12,10 +13,11 @@ import { canQuery, useQuery } from "@/lib/query-limit";
 import { cn } from "@/lib/utils";
 
 export function RankingTable() {
+  const searchParams = useSearchParams();
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState(searchParams.get("category") || "all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("rank");
   const [order, setOrder] = useState<"asc" | "desc">("asc");

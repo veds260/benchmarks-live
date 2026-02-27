@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CompareEntry } from "@/lib/types";
@@ -12,15 +12,155 @@ import { Sparkline } from "@/components/sparkline";
 import { QueryLimitGate } from "@/components/query-limit-gate";
 import { canQuery, useQuery } from "@/lib/query-limit";
 
+interface SearchResult {
+  slug: string;
+  name: string;
+  provider: string;
+  category: string;
+}
+
+function ModelSearch({
+  selected,
+  onAdd,
+  onRemove,
+}: {
+  selected: string[];
+  onAdd: (slug: string, name: string) => void;
+  onRemove: (slug: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Map slug -> display name for pills
+  const [names, setNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const search = useCallback(async (q: string) => {
+    if (q.length < 2) {
+      setResults([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/entries?search=${encodeURIComponent(q)}&limit=8`);
+      const data = await res.json();
+      setResults(
+        data.entries.map((e: SearchResult) => ({
+          slug: e.slug,
+          name: e.name,
+          provider: e.provider,
+          category: e.category,
+        }))
+      );
+      setShowDropdown(true);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleInput = (val: string) => {
+    setQuery(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => search(val), 250);
+  };
+
+  const handleSelect = (r: SearchResult) => {
+    if (selected.includes(r.slug)) return;
+    setNames((prev) => ({ ...prev, [r.slug]: r.name }));
+    onAdd(r.slug, r.name);
+    setQuery("");
+    setResults([]);
+    setShowDropdown(false);
+  };
+
+  return (
+    <div className="space-y-2">
+      {/* Selected pills */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map((slug) => (
+            <span
+              key={slug}
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent/10 text-accent text-xs font-medium rounded-lg"
+            >
+              {names[slug] || slug}
+              <button
+                onClick={() => onRemove(slug)}
+                className="hover:text-red-400 transition-colors ml-0.5"
+              >
+                x
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Search input */}
+      {selected.length < 4 && (
+        <div ref={wrapperRef} className="relative">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => handleInput(e.target.value)}
+            onFocus={() => results.length > 0 && setShowDropdown(true)}
+            placeholder={
+              selected.length === 0
+                ? "Search models to compare (e.g. GPT-5, Claude)..."
+                : "Add another model..."
+            }
+            className="w-full px-4 py-2 bg-bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50"
+          />
+
+          {/* Dropdown */}
+          {showDropdown && results.length > 0 && (
+            <div className="absolute z-20 top-full mt-1 w-full bg-bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+              {results
+                .filter((r) => !selected.includes(r.slug))
+                .map((r) => (
+                  <button
+                    key={r.slug}
+                    onClick={() => handleSelect(r)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-bg-tertiary transition-colors"
+                  >
+                    <span className="text-sm text-text-primary">{r.name}</span>
+                    <span className="text-xs text-text-muted">{r.provider}</span>
+                    <span className="ml-auto text-[10px] text-text-muted bg-bg-tertiary px-1.5 py-0.5 rounded">
+                      {r.category}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ComparePage() {
   const searchParams = useSearchParams();
-  const [slugInput, setSlugInput] = useState(searchParams.get("items") || "");
+  const [slugs, setSlugs] = useState<string[]>([]);
   const [items, setItems] = useState<CompareEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
+  const initialLoaded = useRef(false);
 
-  const fetchCompare = useCallback(async (slugs: string) => {
-    if (!slugs || slugs.split(",").length < 2) return;
+  const fetchCompare = useCallback(async (slugList: string[]) => {
+    if (slugList.length < 2) {
+      setItems([]);
+      return;
+    }
     if (!canQuery()) {
       setLimitReached(true);
       return;
@@ -28,7 +168,7 @@ export default function ComparePage() {
     useQuery();
     setLoading(true);
     try {
-      const res = await fetch(`/api/compare?items=${slugs}`);
+      const res = await fetch(`/api/compare?items=${slugList.join(",")}`);
       const data = await res.json();
       setItems(data);
     } catch {
@@ -38,16 +178,29 @@ export default function ComparePage() {
     }
   }, []);
 
+  // Load from URL params on mount
   useEffect(() => {
+    if (initialLoaded.current) return;
     const initial = searchParams.get("items");
     if (initial) {
-      setSlugInput(initial);
-      fetchCompare(initial);
+      const slugList = initial.split(",").filter(Boolean);
+      setSlugs(slugList);
+      fetchCompare(slugList);
+      initialLoaded.current = true;
     }
   }, [searchParams, fetchCompare]);
 
-  const handleCompare = () => {
-    fetchCompare(slugInput);
+  const handleAdd = (slug: string) => {
+    const next = [...slugs, slug];
+    setSlugs(next);
+    if (next.length >= 2) fetchCompare(next);
+  };
+
+  const handleRemove = (slug: string) => {
+    const next = slugs.filter((s) => s !== slug);
+    setSlugs(next);
+    if (next.length >= 2) fetchCompare(next);
+    else setItems([]);
   };
 
   const metrics = [
@@ -67,20 +220,12 @@ export default function ComparePage() {
       <main className="max-w-6xl mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-text-primary mb-4">Compare</h1>
 
-        <div className="flex gap-2 mb-6">
-          <input
-            type="text"
-            value={slugInput}
-            onChange={(e) => setSlugInput(e.target.value)}
-            placeholder="Enter slugs separated by commas (e.g. gpt-5,claude-opus-4,cursor)"
-            className="flex-1 px-4 py-2 bg-bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50"
+        <div className="mb-6">
+          <ModelSearch
+            selected={slugs}
+            onAdd={(slug) => handleAdd(slug)}
+            onRemove={handleRemove}
           />
-          <button
-            onClick={handleCompare}
-            className="px-4 py-2 bg-accent/15 text-accent border border-accent/30 rounded-lg text-sm font-medium hover:bg-accent/25 transition-colors"
-          >
-            Compare
-          </button>
         </div>
 
         {loading && (
@@ -225,13 +370,9 @@ export default function ComparePage() {
           </div>
         )}
 
-        {items.length === 0 && !loading && (
+        {items.length === 0 && !loading && slugs.length < 2 && (
           <div className="text-center py-12 text-text-muted text-sm">
-            Enter 2-4 slugs separated by commas to compare entries.
-            <br />
-            <span className="text-text-muted/60">
-              Try: gpt-5,claude-opus-4,gemini-25-pro
-            </span>
+            Search and select 2-4 models above to compare them side by side.
           </div>
         )}
       </main>
