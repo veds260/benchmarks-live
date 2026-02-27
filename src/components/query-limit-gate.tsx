@@ -94,7 +94,7 @@ export function QueryLimitGate({ onDismiss }: { onDismiss?: () => void }) {
         ) : (
           <>
             <p className="text-sm text-text-secondary mb-4">
-              You&apos;ve used all 5 free lookups for today. Sign up to get
+              You&apos;ve used your free lookup for today. Sign up to get
               20 AI-powered queries per day.
             </p>
             <div className="text-xs text-text-muted mb-4">

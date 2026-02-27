@@ -1,7 +1,7 @@
 import { isSignedUp } from "./auth";
 
 const STORAGE_KEY = "bml_queries";
-const MAX_QUERIES_ANON = 5;
+const MAX_QUERIES_ANON = 1;
 const MAX_QUERIES_USER = 20;
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 
