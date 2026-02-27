@@ -44,13 +44,13 @@ export function Navbar({ maxWidth = "max-w-7xl" }: { maxWidth?: string }) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-4 text-sm">
+        <nav className="hidden sm:flex items-center gap-4 text-sm shrink-0">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                "transition-colors",
+                "transition-colors whitespace-nowrap",
                 pathname === link.href
                   ? "text-accent font-medium"
                   : "text-text-secondary hover:text-text-primary"
@@ -60,13 +60,13 @@ export function Navbar({ maxWidth = "max-w-7xl" }: { maxWidth?: string }) {
             </Link>
           ))}
           {email ? (
-            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
-              <span className="text-xs text-text-muted truncate max-w-[140px]">
+            <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-border shrink-0">
+              <span className="text-xs text-text-muted truncate max-w-[120px]" title={email}>
                 {email}
               </span>
               <button
                 onClick={handleSignOut}
-                className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+                className="text-xs text-text-muted hover:text-text-secondary transition-colors whitespace-nowrap"
               >
                 Sign out
               </button>
