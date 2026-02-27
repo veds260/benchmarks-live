@@ -1,5 +1,6 @@
 import { GlobalStatsBar } from "@/components/global-stats-bar";
 import { RankingTable } from "@/components/ranking-table";
+import { RecommendBar } from "@/components/recommend-bar";
 import { Navbar } from "@/components/navbar";
 
 export default function HomePage() {
@@ -19,6 +20,16 @@ export default function HomePage() {
             community activity.
           </p>
           <GlobalStatsBar />
+        </div>
+      </section>
+
+      {/* Recommend */}
+      <section className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="mb-1">
+          <h2 className="text-sm font-semibold text-text-secondary mb-2">
+            Find the right model for your use case
+          </h2>
+          <RecommendBar />
         </div>
       </section>
 
