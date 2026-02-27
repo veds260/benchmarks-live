@@ -16,7 +16,7 @@ export interface EntryCatalogItem {
 
 export const ENTRIES: EntryCatalogItem[] = [
   // ========== LLMs ==========
-  { slug: "gpt-4o", name: "GPT-4o", category: "llm", provider: "OpenAI", github_repo: null, huggingface_id: null, pypi_package: "openai", npm_package: "openai", website_url: "https://openai.com", pricing_type: "paid", pricing_note: "$5/$15 per 1M tokens" },
+  { slug: "gpt-4o", name: "GPT-4o", category: "llm", provider: "OpenAI", github_repo: null, huggingface_id: null, pypi_package: "openai", npm_package: "openai", website_url: "https://openai.com", pricing_type: "paid", pricing_note: "$2.50/$10 per 1M tokens" },
   { slug: "gpt-4o-mini", name: "GPT-4o Mini", category: "llm", provider: "OpenAI", github_repo: null, huggingface_id: null, pypi_package: "openai", npm_package: "openai", website_url: "https://openai.com", pricing_type: "paid", pricing_note: "$0.15/$0.60 per 1M tokens" },
   { slug: "gpt-5", name: "GPT-5", category: "llm", provider: "OpenAI", github_repo: null, huggingface_id: null, pypi_package: "openai", npm_package: "openai", website_url: "https://openai.com", pricing_type: "paid", pricing_note: "$1.25/$10 per 1M tokens" },
   { slug: "o3", name: "o3", category: "llm", provider: "OpenAI", github_repo: null, huggingface_id: null, pypi_package: "openai", npm_package: "openai", website_url: "https://openai.com", pricing_type: "paid", pricing_note: "$2/$8 per 1M tokens" },

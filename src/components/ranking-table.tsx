@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EntryRow, EntriesResponse } from "@/lib/types";
 import { CategoryTabs } from "./category-tabs";
 import { SearchBar } from "./search-bar";
 import { EntryRowComponent } from "./entry-row";
 import { Pagination } from "./pagination";
 import { SkeletonTable } from "./skeleton-table";
+import { QueryLimitGate } from "./query-limit-gate";
+import { canQuery, useQuery } from "@/lib/query-limit";
 import { cn } from "@/lib/utils";
 
 export function RankingTable() {
@@ -19,10 +21,23 @@ export function RankingTable() {
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
+  const isFirstLoad = useRef(true);
 
   const pageSize = 50;
 
   const fetchData = useCallback(async () => {
+    // First load is always free. Subsequent fetches (search, sort, page, filter) cost a query.
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+    } else {
+      if (!canQuery()) {
+        setLimitReached(true);
+        return;
+      }
+      useQuery();
+    }
+
     setLoading(true);
     setError(false);
     try {
@@ -181,6 +196,10 @@ export function RankingTable() {
         <div className="text-center text-xs text-text-muted">
           Showing {entries.length} of {total} entries
         </div>
+      )}
+
+      {limitReached && (
+        <QueryLimitGate onDismiss={() => setLimitReached(false)} />
       )}
     </div>
   );

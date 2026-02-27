@@ -9,15 +9,23 @@ import { ScoreBadge } from "@/components/score-badge";
 import { TrendIndicator } from "@/components/trend-indicator";
 import { formatNumber, cn } from "@/lib/utils";
 import { Sparkline } from "@/components/sparkline";
+import { QueryLimitGate } from "@/components/query-limit-gate";
+import { canQuery, useQuery } from "@/lib/query-limit";
 
 export default function ComparePage() {
   const searchParams = useSearchParams();
   const [slugInput, setSlugInput] = useState(searchParams.get("items") || "");
   const [items, setItems] = useState<CompareEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
 
   const fetchCompare = useCallback(async (slugs: string) => {
     if (!slugs || slugs.split(",").length < 2) return;
+    if (!canQuery()) {
+      setLimitReached(true);
+      return;
+    }
+    useQuery();
     setLoading(true);
     try {
       const res = await fetch(`/api/compare?items=${slugs}`);
@@ -54,6 +62,7 @@ export default function ComparePage() {
   return (
     <div className="min-h-screen bg-bg-primary">
       <Navbar maxWidth="max-w-6xl" />
+      {limitReached && <QueryLimitGate onDismiss={() => setLimitReached(false)} />}
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-text-primary mb-4">Compare</h1>
