@@ -10,8 +10,7 @@ import { HistoryChart } from "@/components/detail/history-chart";
 import { BenchmarkTable } from "@/components/detail/benchmark-table";
 import { SocialBuzz } from "@/components/detail/social-buzz";
 import { RelatedEntries } from "@/components/detail/related-entries";
-import { QueryLimitGate } from "@/components/query-limit-gate";
-import { canQuery, useQuery } from "@/lib/query-limit";
+import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 
 export default function ModelDetailPage() {
@@ -19,15 +18,10 @@ export default function ModelDetailPage() {
   const slug = params.slug as string;
   const [entry, setEntry] = useState<EntryDetail | null>(null);
   const [error, setError] = useState(false);
-  const [limitReached, setLimitReached] = useState(false);
 
   const fetchEntry = () => {
-    if (!canQuery()) {
-      setLimitReached(true);
-      return;
-    }
-    useQuery();
     setError(false);
+    trackEvent("model_view", { slug }, `/model/${slug}`);
     fetch(`/api/entries/${slug}`)
       .then((r) => {
         if (!r.ok) throw new Error("Not found");
@@ -41,15 +35,6 @@ export default function ModelDetailPage() {
     fetchEntry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
-
-  if (limitReached) {
-    return (
-      <div className="min-h-screen bg-bg-primary">
-        <Navbar maxWidth="max-w-5xl" />
-        <QueryLimitGate onDismiss={() => window.history.back()} />
-      </div>
-    );
-  }
 
   if (error) {
     return (

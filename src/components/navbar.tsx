@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { getEmail, isSignedUp, clearAuth } from "@/lib/auth";
 
 const NAV_LINKS = [
   { href: "/", label: "Rankings" },
@@ -16,6 +17,19 @@ const NAV_LINKS = [
 export function Navbar({ maxWidth = "max-w-7xl" }: { maxWidth?: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isSignedUp()) {
+      setEmail(getEmail());
+    }
+  }, []);
+
+  const handleSignOut = () => {
+    clearAuth();
+    setEmail(null);
+    window.location.reload();
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-bg-primary/80 backdrop-blur-md border-b border-border">
@@ -45,6 +59,19 @@ export function Navbar({ maxWidth = "max-w-7xl" }: { maxWidth?: string }) {
               {link.label}
             </Link>
           ))}
+          {email ? (
+            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
+              <span className="text-xs text-text-muted truncate max-w-[140px]">
+                {email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : null}
         </nav>
 
         {/* Mobile hamburger */}
@@ -81,6 +108,17 @@ export function Navbar({ maxWidth = "max-w-7xl" }: { maxWidth?: string }) {
               {link.label}
             </Link>
           ))}
+          {email && (
+            <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
+              <span className="text-xs text-text-muted truncate">{email}</span>
+              <button
+                onClick={handleSignOut}
+                className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
         </nav>
       )}
     </header>

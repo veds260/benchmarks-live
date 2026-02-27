@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TrendingEntry } from "@/lib/types";
 import { Navbar } from "@/components/navbar";
 import { ScoreBadge } from "@/components/score-badge";
 import { TrendIndicator } from "@/components/trend-indicator";
 import { CategoryBadge } from "@/components/category-badge";
-import { QueryLimitGate } from "@/components/query-limit-gate";
-import { canQuery, useQuery } from "@/lib/query-limit";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 export default function TrendingPage() {
@@ -17,21 +16,11 @@ export default function TrendingPage() {
   const [period, setPeriod] = useState<"24h" | "7d">("24h");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [limitReached, setLimitReached] = useState(false);
-  const isFirstLoad = useRef(true);
 
   const fetchTrending = () => {
-    if (isFirstLoad.current) {
-      isFirstLoad.current = false;
-    } else {
-      if (!canQuery()) {
-        setLimitReached(true);
-        return;
-      }
-      useQuery();
-    }
     setLoading(true);
     setError(false);
+    trackEvent("page_view", { period }, "/trending");
     fetch(`/api/trending?period=${period}`)
       .then((r) => {
         if (!r.ok) throw new Error("Failed");
@@ -85,7 +74,6 @@ export default function TrendingPage() {
   return (
     <div className="min-h-screen bg-bg-primary">
       <Navbar maxWidth="max-w-5xl" />
-      {limitReached && <QueryLimitGate onDismiss={() => setLimitReached(false)} />}
 
       <main className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">

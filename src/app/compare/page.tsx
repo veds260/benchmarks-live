@@ -11,6 +11,7 @@ import { formatNumber, cn } from "@/lib/utils";
 import { Sparkline } from "@/components/sparkline";
 import { QueryLimitGate } from "@/components/query-limit-gate";
 import { canQuery, useQuery } from "@/lib/query-limit";
+import { trackEvent } from "@/lib/analytics";
 
 interface SearchResult {
   slug: string;
@@ -166,6 +167,7 @@ export default function ComparePage() {
       return;
     }
     useQuery();
+    trackEvent("compare", { slugs: slugList });
     setLoading(true);
     try {
       const res = await fetch(`/api/compare?items=${slugList.join(",")}`);

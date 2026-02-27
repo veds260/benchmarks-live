@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { canQuery, useQuery } from "@/lib/query-limit";
+import { trackEvent } from "@/lib/analytics";
 import { QueryLimitGate } from "./query-limit-gate";
 
 interface Benchmark {
@@ -101,6 +102,7 @@ export function RecommendBar() {
       return;
     }
     useQuery();
+    trackEvent("recommend", { query: query.trim() });
 
     setLoading(true);
     setError("");

@@ -10,6 +10,7 @@ import { Pagination } from "./pagination";
 import { SkeletonTable } from "./skeleton-table";
 import { QueryLimitGate } from "./query-limit-gate";
 import { canQuery, useQuery } from "@/lib/query-limit";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 export function RankingTable() {
@@ -28,16 +29,20 @@ export function RankingTable() {
 
   const pageSize = 50;
 
+  const lastSearch = useRef("");
+
   const fetchData = useCallback(async () => {
-    // First load is always free. Subsequent fetches (search, sort, page, filter) cost a query.
-    if (isFirstLoad.current) {
-      isFirstLoad.current = false;
-    } else {
+    // Only search costs a query. Sort, filter, paginate are free.
+    const isSearch = search !== "" && search !== lastSearch.current;
+    lastSearch.current = search;
+
+    if (isSearch) {
       if (!canQuery()) {
         setLimitReached(true);
         return;
       }
       useQuery();
+      trackEvent("search", { query: search, category });
     }
 
     setLoading(true);

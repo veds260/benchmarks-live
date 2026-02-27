@@ -121,6 +121,27 @@ export function getDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_github_stats_entry_date ON github_stats(entry_id, date);
     CREATE INDEX IF NOT EXISTS idx_download_stats_entry_date ON download_stats(entry_id, date, source);
     CREATE INDEX IF NOT EXISTS idx_social_mentions_entry_date ON social_mentions(entry_id, date, source);
+
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      token TEXT UNIQUE NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS analytics_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      visitor_id TEXT NOT NULL,
+      email TEXT,
+      event_type TEXT NOT NULL,
+      event_data TEXT DEFAULT '{}',
+      path TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics_events(event_type);
+    CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON analytics_events(created_at);
+    CREATE INDEX IF NOT EXISTS idx_analytics_visitor ON analytics_events(visitor_id);
   `);
 
   return _db;
