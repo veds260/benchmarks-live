@@ -1,16 +1,14 @@
-import { ParticleBackground } from "@/components/particle-background";
 import { GlobalStatsBar } from "@/components/global-stats-bar";
 import { RankingTable } from "@/components/ranking-table";
 import { Navbar } from "@/components/navbar";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen">
       <Navbar />
 
-      {/* Hero with particles */}
+      {/* Hero */}
       <section className="relative overflow-hidden" style={{ height: "180px" }}>
-        <ParticleBackground />
         <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col justify-center h-full">
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2">
             AI Ecosystem Tracker
@@ -22,7 +20,6 @@ export default function HomePage() {
           </p>
           <GlobalStatsBar />
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-bg-primary to-transparent" />
       </section>
 
       {/* Main content */}

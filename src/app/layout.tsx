@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Preloader } from "@/components/preloader";
+import { VideoBackground } from "@/components/video-background";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -70,7 +71,10 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-inter), sans-serif" }}
       >
         <Preloader />
-        {children}
+        <VideoBackground />
+        <div className="relative z-10">
+          {children}
+        </div>
       </body>
     </html>
   );
