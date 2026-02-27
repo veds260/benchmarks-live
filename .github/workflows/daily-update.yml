@@ -1,0 +1,30 @@
+name: Daily Data Update
+
+on:
+  schedule:
+    # Run every day at 6:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Trigger data pipeline
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/api/cron/all" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | head -n -1)
+
+          echo "Status: $http_code"
+          echo "Response: $body"
+
+          if [ "$http_code" -ge 400 ]; then
+            echo "::error::Cron request failed with status $http_code"
+            exit 1
+          fi
