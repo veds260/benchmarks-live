@@ -142,7 +142,7 @@ export function RecommendBar() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           placeholder="Describe what you're building... e.g. &quot;cheap coding assistant with 128K context&quot;"
-          className="flex-1 px-4 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 transition-colors"
+          className="flex-1 px-4 py-2.5 bg-bg-primary border border-border-hover rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
         />
         <button
           onClick={handleSubmit}

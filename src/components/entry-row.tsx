@@ -21,7 +21,7 @@ export function EntryRowComponent({
     <Link
       href={`/model/${entry.slug}`}
       className={cn(
-        "block rounded-lg transition-all duration-200 hover:bg-bg-tertiary border border-transparent hover:border-border-hover group",
+        "block rounded-lg transition-all duration-200 hover:bg-bg-tertiary hover:scale-[1.005] border border-transparent hover:border-accent/20 hover:shadow-[0_0_12px_rgba(6,214,160,0.06)] group cursor-pointer",
         index % 2 === 0 ? "bg-bg-card/50" : "bg-transparent"
       )}
     >

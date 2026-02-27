@@ -25,10 +25,15 @@ export default function HomePage() {
 
       {/* Recommend */}
       <section className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="mb-1">
-          <h2 className="text-sm font-semibold text-text-secondary mb-2">
-            Find the right model for your use case
-          </h2>
+        <div className="bg-bg-card border border-border rounded-xl p-4 sm:p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <svg className="w-4 h-4 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h2 className="text-sm font-semibold text-text-primary">
+              Find the right model for your use case
+            </h2>
+          </div>
           <RecommendBar />
         </div>
       </section>
