@@ -1,12 +1,17 @@
 import { isSignedUp } from "./auth";
 
 const STORAGE_KEY = "bml_queries";
-const MAX_QUERIES = 5;
+const MAX_QUERIES_ANON = 5;
+const MAX_QUERIES_USER = 20;
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface QueryRecord {
   count: number;
   firstAt: number; // timestamp of first query in this window
+}
+
+function getMaxQueries(): number {
+  return isSignedUp() ? MAX_QUERIES_USER : MAX_QUERIES_ANON;
 }
 
 function getRecord(): QueryRecord {
@@ -34,16 +39,15 @@ function saveRecord(rec: QueryRecord) {
 
 /** Returns true if the user still has queries left */
 export function canQuery(): boolean {
-  if (isSignedUp()) return true;
   const rec = getRecord();
-  return rec.count < MAX_QUERIES;
+  return rec.count < getMaxQueries();
 }
 
 /** Consume one query. Returns false if limit reached. */
 export function useQuery(): boolean {
-  if (isSignedUp()) return true;
   const rec = getRecord();
-  if (rec.count >= MAX_QUERIES) return false;
+  const max = getMaxQueries();
+  if (rec.count >= max) return false;
   rec.count += 1;
   if (rec.count === 1) rec.firstAt = Date.now();
   saveRecord(rec);
@@ -52,9 +56,8 @@ export function useQuery(): boolean {
 
 /** How many queries remain */
 export function queriesRemaining(): number {
-  if (isSignedUp()) return Infinity;
   const rec = getRecord();
-  return Math.max(0, MAX_QUERIES - rec.count);
+  return Math.max(0, getMaxQueries() - rec.count);
 }
 
 /** Milliseconds until the window resets */

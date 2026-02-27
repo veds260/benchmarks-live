@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import path from "path";
+import { autoSeedIfEmpty } from "./seed";
 
 const DB_PATH = path.join(process.cwd(), "data", "benchmarks.db");
 
@@ -143,6 +144,8 @@ export function getDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON analytics_events(created_at);
     CREATE INDEX IF NOT EXISTS idx_analytics_visitor ON analytics_events(visitor_id);
   `);
+
+  autoSeedIfEmpty(_db);
 
   return _db;
 }
