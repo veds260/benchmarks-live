@@ -6,21 +6,35 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "tsx scripts/seed.ts",
+    "fetch:github": "tsx scripts/fetch-github.ts",
+    "fetch:hf": "tsx scripts/fetch-huggingface.ts",
+    "fetch:pypi": "tsx scripts/fetch-pypi.ts",
+    "fetch:npm": "tsx scripts/fetch-npm.ts",
+    "fetch:social": "tsx scripts/fetch-social.ts",
+    "compute": "tsx scripts/compute-scores.ts",
+    "fetch:all": "npm run fetch:github && npm run fetch:hf && npm run fetch:pypi && npm run fetch:npm && npm run fetch:social && npm run compute"
   },
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "chart.js": "^4.5.1",
+    "motion": "^12.34.3",
     "next": "16.1.6",
     "react": "19.2.3",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
