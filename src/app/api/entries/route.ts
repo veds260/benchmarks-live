@@ -22,8 +22,15 @@ export async function GET(req: NextRequest) {
   }
 
   if (search) {
-    conditions.push("(e.name LIKE ? OR e.provider LIKE ?)");
-    binds.push(`%${search}%`, `%${search}%`);
+    // Split into terms so "anthropic sonnet" matches entries where both words appear
+    // across name, provider, category, or pricing_type
+    const terms = search.trim().split(/\s+/).filter(Boolean);
+    for (const term of terms) {
+      conditions.push(
+        "(e.name LIKE ? OR e.provider LIKE ? OR e.category LIKE ? OR e.pricing_type LIKE ?)"
+      );
+      binds.push(`%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`);
+    }
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
