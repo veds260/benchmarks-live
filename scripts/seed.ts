@@ -408,6 +408,35 @@ const llmBenchmarks: BenchmarkSeed[] = [
     { name: "MMLU Pro", score: 52.8, max: 100 },
     { name: "HumanEval", score: 72.4, max: 100 },
   ]},
+  { slug: "llama-31-405b", benchmarks: [
+    { name: "MMLU Pro", score: 73.3, max: 100 },
+    { name: "GPQA Diamond", score: 51.1, max: 100 },
+    { name: "HumanEval", score: 89.0, max: 100 },
+    { name: "MATH-500", score: 73.8, max: 100 },
+    { name: "LM Arena ELO", score: 1266, max: 1500 },
+  ]},
+  { slug: "llama-32-3b", benchmarks: [
+    { name: "MMLU Pro", score: 43.6, max: 100 },
+    { name: "HumanEval", score: 62.8, max: 100 },
+    { name: "MATH-500", score: 48.0, max: 100 },
+  ]},
+  { slug: "mistral-nemo", benchmarks: [
+    { name: "MMLU Pro", score: 55.6, max: 100 },
+    { name: "HumanEval", score: 78.0, max: 100 },
+    { name: "LM Arena ELO", score: 1198, max: 1500 },
+  ]},
+  { slug: "qwen-25-72b", benchmarks: [
+    { name: "MMLU Pro", score: 71.1, max: 100 },
+    { name: "GPQA Diamond", score: 49.0, max: 100 },
+    { name: "HumanEval", score: 86.6, max: 100 },
+    { name: "MATH-500", score: 83.1, max: 100 },
+    { name: "LM Arena ELO", score: 1283, max: 1500 },
+  ]},
+  { slug: "gemma-2-27b", benchmarks: [
+    { name: "MMLU Pro", score: 57.5, max: 100 },
+    { name: "HumanEval", score: 74.4, max: 100 },
+    { name: "LM Arena ELO", score: 1220, max: 1500 },
+  ]},
 ];
 
 // Seed code tool benchmarks
