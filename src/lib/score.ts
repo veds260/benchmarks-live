@@ -15,6 +15,8 @@ interface RawSignals {
   hn_comments_7d: number;
   reddit_points_7d: number;
   reddit_comments_7d: number;
+  twitter_points_7d: number;
+  twitter_comments_7d: number;
   // Community
   github_contributors: number;
   github_forks: number;
@@ -115,6 +117,7 @@ export function computeAllScores(): void {
 
     const hnRow = social.find((s) => s.source === "hackernews");
     const redditRow = social.find((s) => s.source === "reddit");
+    const twitterRow = social.find((s) => s.source === "twitter");
 
     let daysSinceCommit = 365;
     if (gh?.last_commit_at) {
@@ -135,6 +138,8 @@ export function computeAllScores(): void {
       hn_comments_7d: hnRow?.cmt ?? 0,
       reddit_points_7d: redditRow?.pts ?? 0,
       reddit_comments_7d: redditRow?.cmt ?? 0,
+      twitter_points_7d: twitterRow?.pts ?? 0,
+      twitter_comments_7d: twitterRow?.cmt ?? 0,
       github_contributors: Math.round((gh?.contributors ?? 0) / ghDivisor),
       github_forks: Math.round((gh?.forks ?? 0) / ghDivisor),
       hf_likes: hfDl?.likes ?? 0,
@@ -188,18 +193,22 @@ export function computeAllScores(): void {
         popValues
       );
 
-      // Sentiment: social signals
+      // Sentiment: social signals (HN + Reddit + Twitter)
       const socialScore =
         sig.hn_points_7d * 2 +
         sig.hn_comments_7d +
         sig.reddit_points_7d +
-        sig.reddit_comments_7d;
+        sig.reddit_comments_7d +
+        sig.twitter_points_7d +
+        sig.twitter_comments_7d;
       const sentValues = catSignals.map(
         (s) =>
           s.hn_points_7d * 2 +
           s.hn_comments_7d +
           s.reddit_points_7d +
-          s.reddit_comments_7d
+          s.reddit_comments_7d +
+          s.twitter_points_7d +
+          s.twitter_comments_7d
       );
       const sentiment = logNormalize(socialScore, sentValues);
 

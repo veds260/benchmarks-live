@@ -1,13 +1,41 @@
 import { getDb } from "../db";
+import { getSearchTerms, matchesAny } from "./search-aliases";
 
-const SUBREDDITS = ["LocalLLaMA", "MachineLearning", "artificial", "StableDiffusion"];
+const SUBREDDITS = [
+  // AI general
+  "LocalLLaMA",
+  "MachineLearning",
+  "artificial",
+  "ArtificialIntelligence",
+  "singularity",
+  "deeplearning",
+  // Provider-specific
+  "ChatGPT",
+  "OpenAI",
+  "ClaudeAI",
+  "AnthropicAI",
+  "Bard",
+  "ollama",
+  // Image/video gen
+  "StableDiffusion",
+  "midjourney",
+  "comfyui",
+  // Code tools
+  "cursor",
+  "CodingWithAI",
+  // General tech
+  "programming",
+  "technology",
+];
 
 interface RedditPost {
   data: {
     title: string;
+    selftext: string;
     url: string;
     score: number;
     num_comments: number;
+    permalink: string;
   };
 }
 
@@ -15,8 +43,8 @@ export async function fetchRedditStats(): Promise<number> {
   const db = getDb();
 
   const entries = db
-    .prepare("SELECT id, name, slug FROM entries")
-    .all() as { id: number; name: string; slug: string }[];
+    .prepare("SELECT id, name, slug, provider FROM entries")
+    .all() as { id: number; name: string; slug: string; provider: string }[];
 
   const today = new Date().toISOString().split("T")[0];
   let updated = 0;
@@ -33,7 +61,14 @@ export async function fetchRedditStats(): Promise<number> {
   `);
 
   // Fetch recent posts from each subreddit
-  const allPosts: { title: string; url: string; score: number; num_comments: number }[] = [];
+  const allPosts: {
+    title: string;
+    selftext: string;
+    url: string;
+    score: number;
+    num_comments: number;
+    permalink: string;
+  }[] = [];
 
   for (const sub of SUBREDDITS) {
     try {
@@ -49,9 +84,11 @@ export async function fetchRedditStats(): Promise<number> {
       for (const post of posts) {
         allPosts.push({
           title: post.data.title,
+          selftext: post.data.selftext || "",
           url: post.data.url,
           score: post.data.score,
           num_comments: post.data.num_comments,
+          permalink: post.data.permalink,
         });
       }
 
@@ -61,11 +98,13 @@ export async function fetchRedditStats(): Promise<number> {
     }
   }
 
-  // Match posts to entries by name
+  // Match posts to entries using fuzzy search aliases
   for (const entry of entries) {
-    const nameLower = entry.name.toLowerCase();
+    const searchTerms = getSearchTerms(entry.name, entry.slug, entry.provider);
+
+    // Match against title AND selftext for better coverage
     const matching = allPosts.filter((p) =>
-      p.title.toLowerCase().includes(nameLower)
+      matchesAny(p.title + " " + p.selftext, searchTerms)
     );
 
     if (matching.length === 0) continue;
@@ -83,7 +122,7 @@ export async function fetchRedditStats(): Promise<number> {
       matching.length,
       totalPoints,
       totalComments,
-      top.url,
+      top.permalink ? `https://reddit.com${top.permalink}` : top.url,
       top.title
     );
     updated++;

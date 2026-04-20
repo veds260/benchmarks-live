@@ -122,7 +122,7 @@ export interface Benchmark {
 
 export interface SocialMention {
   date: string;
-  source: "hackernews" | "reddit";
+  source: "hackernews" | "reddit" | "twitter";
   mention_count: number;
   total_points: number;
   total_comments: number;

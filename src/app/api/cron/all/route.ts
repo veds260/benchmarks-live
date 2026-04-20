@@ -5,6 +5,7 @@ import { fetchPyPIStats } from "@/lib/fetchers/pypi";
 import { fetchNpmStats } from "@/lib/fetchers/npm";
 import { fetchHackerNewsStats } from "@/lib/fetchers/hackernews";
 import { fetchRedditStats } from "@/lib/fetchers/reddit";
+import { fetchTwitterStats } from "@/lib/fetchers/twitter";
 import { computeAllScores } from "@/lib/score";
 import { getDb } from "@/lib/db";
 
@@ -15,6 +16,7 @@ const STEPS = [
   { name: "npm", fn: fetchNpmStats },
   { name: "hackernews", fn: fetchHackerNewsStats },
   { name: "reddit", fn: fetchRedditStats },
+  { name: "twitter", fn: fetchTwitterStats },
 ] as const;
 
 export async function POST(req: NextRequest) {

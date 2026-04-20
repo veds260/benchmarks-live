@@ -21,8 +21,12 @@ export function SocialBuzz({ mentions }: { mentions: SocialMention[] }) {
       <div className="divide-y divide-border/50">
         {mentions.map((m, i) => (
           <div key={i} className="px-4 py-3 flex items-center gap-4">
-            <span className="text-xs font-medium px-2 py-0.5 rounded bg-bg-tertiary text-text-muted capitalize">
-              {m.source === "hackernews" ? "HN" : "Reddit"}
+            <span className={`text-xs font-medium px-2 py-0.5 rounded capitalize ${
+              m.source === "twitter"
+                ? "bg-sky-500/10 text-sky-400"
+                : "bg-bg-tertiary text-text-muted"
+            }`}>
+              {m.source === "hackernews" ? "HN" : m.source === "twitter" ? "X" : "Reddit"}
             </span>
             <div className="flex-1 min-w-0">
               {m.top_title ? (

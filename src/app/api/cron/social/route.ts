@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchHackerNewsStats } from "@/lib/fetchers/hackernews";
 import { fetchRedditStats } from "@/lib/fetchers/reddit";
+import { fetchTwitterStats } from "@/lib/fetchers/twitter";
 import { getDb } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
@@ -18,12 +19,13 @@ export async function POST(req: NextRequest) {
   try {
     const hnCount = await fetchHackerNewsStats();
     const redditCount = await fetchRedditStats();
-    const total = hnCount + redditCount;
+    const twitterCount = await fetchTwitterStats();
+    const total = hnCount + redditCount + twitterCount;
 
     db.prepare(
       "UPDATE fetch_logs SET finished_at = datetime('now'), status = 'done', entries_updated = ? WHERE id = ?"
     ).run(total, logId.id);
-    return NextResponse.json({ success: true, hn: hnCount, reddit: redditCount });
+    return NextResponse.json({ success: true, hn: hnCount, reddit: redditCount, twitter: twitterCount });
   } catch (err) {
     db.prepare(
       "UPDATE fetch_logs SET finished_at = datetime('now'), status = 'error', error = ? WHERE id = ?"
